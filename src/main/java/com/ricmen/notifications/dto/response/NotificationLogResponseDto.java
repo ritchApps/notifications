@@ -17,7 +17,7 @@ public class NotificationLogResponseDto {
   private String userEmail;
   private String messageBody;
   private String category;
-  private ChannelType ChannelType;
+  private ChannelType channelType;
   private NotificationStatus status;
   private LocalDateTime sentAt;
   private String errorMessage;

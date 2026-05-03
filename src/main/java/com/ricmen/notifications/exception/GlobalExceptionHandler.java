@@ -30,16 +30,16 @@ public class GlobalExceptionHandler {
     log.warn("Validation error: {} ", errorMessage);
     model.addAttribute("error", errorMessage);
     return ResponseEntity
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body(Map.of("error", "An unexpected error ocurred"));
+        .status(HttpStatus.BAD_REQUEST)
+        .body(Map.of("error", errorMessage));
   }
 
   @ExceptionHandler(Exception.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  public ResponseEntity<Map<String, String>> handleGenericException(Exception ex, Model model) {
+  public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
     log.error("Unexpected error: {}", ex.getMessage());
-    model.addAttribute("error", "An unexpected error ocurred. Please try agains.");
-    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+    return ResponseEntity
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .body(Map.of("Error", "An unexpected error ocurred"));
   }
 

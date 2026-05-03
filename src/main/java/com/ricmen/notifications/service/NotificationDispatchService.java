@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.function.Function;
 
@@ -22,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class NotificationDispatchService {
+
   private final UserRepository userRepository;
   private final NotificationLogRepository notificationLogRepository;
   private final Map<ChannelType, NotificationChannel> channels;
@@ -38,6 +41,7 @@ public class NotificationDispatchService {
             Function.identity()));
   }
 
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void dispatch(Message message) {
     List<User> subscribedUsers = userRepository.findAllSubscribedToCategory(message.getCategory());
 
@@ -65,6 +69,10 @@ public class NotificationDispatchService {
       String errorMessage) {
     NotificationLog notificationLog = new NotificationLog();
     notificationLog.setUser(user);
+    notificationLog.setMessage(message);
+    notificationLog.setChannelType(channelType);
+    notificationLog.setStatus(status);
+    notificationLog.setErrorMessage(errorMessage);
     notificationLogRepository.save(notificationLog);
   }
 
