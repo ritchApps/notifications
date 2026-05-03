@@ -1,20 +1,24 @@
 package com.ricmen.notifications.service;
 
-import com.ricmen.notifications.domain.entity.NotificationLog;
-import com.ricmen.notifications.repository.NotificationLogRepository;
-import com.sun.nio.sctp.Notification;
+import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.ricmen.notifications.domain.entity.NotificationLog;
+import com.ricmen.notifications.dto.response.NotificationLogResponseDto;
+import com.ricmen.notifications.mapper.NotificationLogMapper;
+import com.ricmen.notifications.repository.NotificationLogRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class NotificationLogService {
   private final NotificationLogRepository notificationLogRepository;
+  private final NotificationLogMapper mapper;
 
-  public List<NotificationLog> getAllLogs() {
-    return notificationLogRepository.findAllByOrderBySentAtDesc();
+  public List<NotificationLogResponseDto> getAllLogs() {
+    List<NotificationLog> logs = notificationLogRepository.findAllByOrderBySentAtDesc();
+    return logs.stream().map(mapper::toDto).toList();
   }
 }

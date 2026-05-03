@@ -1,8 +1,12 @@
 package com.ricmen.notifications.service;
 
+import com.ricmen.notifications.mapper.CategoryMapper;
+import com.ricmen.notifications.dto.response.CategoryResponseDto;
 import com.ricmen.notifications.domain.entity.Message;
 import com.ricmen.notifications.domain.enums.Category;
+import com.ricmen.notifications.dto.response.MessageResponseDto;
 import com.ricmen.notifications.event.MessageReceivedEvent;
+import com.ricmen.notifications.mapper.MessageMapper;
 import com.ricmen.notifications.repository.MessageRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -20,9 +24,11 @@ import java.util.List;
 public class MessageService {
   private final MessageRepository messageRepository;
   private final ApplicationEventPublisher eventPublisher;
+  private final MessageMapper mapper;
+  private final CategoryMapper categoryMapper;
 
   @Transactional
-  public Message send(Category category, String body) {
+  public MessageResponseDto send(Category category, String body) {
     Message message = new Message();
     message.setCategory(category);
     message.setBody(body);
@@ -31,10 +37,11 @@ public class MessageService {
     log.info("Mesage saved with id: {} for category: {}", saved.getId(), saved.getCategory());
 
     eventPublisher.publishEvent(new MessageReceivedEvent(saved));
-    return saved;
+    return mapper.toDto(saved);
   }
 
-  public List<Category> getAllCategories() {
-    return Arrays.asList(Category.values());
+  public List<CategoryResponseDto> getAllCategories() {
+    return Arrays.stream(Category.values())
+        .map(categoryMapper::toDto).toList();
   }
 }
