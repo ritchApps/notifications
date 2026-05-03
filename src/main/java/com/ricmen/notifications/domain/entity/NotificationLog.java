@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import com.ricmen.notifications.domain.enums.ChannelType;
 import com.ricmen.notifications.domain.enums.NotificationStatus;
 
-import jakarta.annotation.Generated;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.*;
