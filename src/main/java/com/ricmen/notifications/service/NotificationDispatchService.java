@@ -42,7 +42,7 @@ public class NotificationDispatchService {
     List<User> subscribedUsers = userRepository.findAllSubscribedToCategory(message.getCategory());
 
     if (subscribedUsers.isEmpty()) {
-      log.warn("no subscribers found for category: {}", message.getCategory());
+      log.warn("no suscribers found for category: {}", message.getCategory());
       return;
     }
 
