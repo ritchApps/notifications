@@ -1,7 +1,7 @@
 package com.ricmen.notifications.dto.response;
 
 import java.time.LocalDateTime;
-import java.util.Locale.Category;
+import com.ricmen.notifications.domain.enums.Category;
 
 import lombok.Builder;
 import lombok.Getter;

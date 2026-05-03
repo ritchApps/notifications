@@ -9,7 +9,7 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table
+@Table(name = "messages")
 @Setter
 @Getter
 @NoArgsConstructor
@@ -26,7 +26,7 @@ public class Message {
   @Column(nullable = false, columnDefinition = "TEXT")
   private String body;
 
-  @Column(name = "crated_at", nullable = false, updatable = false)
+  @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt = LocalDateTime.now();
 
 }

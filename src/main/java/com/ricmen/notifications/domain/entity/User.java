@@ -36,6 +36,8 @@ public class User {
   @Enumerated(EnumType.ORDINAL)
   private Set<Category> categories = new HashSet<>();
 
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(name = "user_channels", joinColumns = @JoinColumn(name = "user_id"))
   @Column(name = "channel_type_id")
   @Enumerated(EnumType.ORDINAL)
   private Set<ChannelType> channels = new HashSet<>();

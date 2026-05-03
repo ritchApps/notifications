@@ -32,7 +32,7 @@ public class NotificationLog {
   private User user;
 
   @Enumerated(EnumType.ORDINAL)
-  @Column(name = "chanel_type_id", nullable = false)
+  @Column(name = "channel_type_id", nullable = false)
   private ChannelType channelType;
 
   @Enumerated(EnumType.STRING)
