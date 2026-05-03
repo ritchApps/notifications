@@ -4,7 +4,6 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -18,8 +17,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ResponseEntity<Map<String, String>> handleValidationException(MethodArgumentNotValidException ex,
-      Model model) {
+  public ResponseEntity<Map<String, String>> handleValidationException(MethodArgumentNotValidException ex) {
     String errorMessage = ex.getBindingResult()
         .getFieldErrors()
         .stream()
@@ -28,7 +26,6 @@ public class GlobalExceptionHandler {
         .orElse("Validation error");
 
     log.warn("Validation error: {} ", errorMessage);
-    model.addAttribute("error", errorMessage);
     return ResponseEntity
         .status(HttpStatus.BAD_REQUEST)
         .body(Map.of("error", errorMessage));
