@@ -5,11 +5,11 @@ import java.time.LocalDateTime;
 import com.ricmen.notifications.domain.enums.ChannelType;
 import com.ricmen.notifications.domain.enums.NotificationStatus;
 
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
+@Builder
 public class NotificationLogResponseDto {
 
   private Long id;
