@@ -1,14 +1,12 @@
 package com.ricmen.notifications.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -91,7 +89,7 @@ class NotificationLogServiceTest {
     assertThat(response).extracting(NotificationLogResponseDto::getStatus)
         .containsExactly(NotificationStatus.DELIVERED, NotificationStatus.FAILED);
 
-  }
+  };
 
   private NotificationLogResponseDto buildDto(long id, NotificationStatus status) {
     return NotificationLogResponseDto.builder()
