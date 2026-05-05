@@ -14,7 +14,7 @@
       padding: 32px 16px;
     }
 
-    .container { max-width: 800px; margin: 0 auto; }
+    .container { max-width: 900px; margin: 0 auto; }
 
     h1 {
       font-size: 24px;
@@ -104,6 +104,36 @@
       display: none;
     }
 
+    .filters {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+
+    .filters select { margin-bottom: 0; }
+
+    .filter-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    .filter-group { display: flex; flex-direction: column; }
+
+    .btn-clear {
+      background: transparent;
+      color: #555;
+      border: 1px solid #ddd;
+      padding: 10px 16px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .btn-clear:hover { background: #f5f5f5; color: #333; }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -167,6 +197,12 @@
     }
 
     .refresh-btn:hover { background: #f5f5f5; color: #333; }
+
+    .results-count {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 12px;
+    }
   </style>
 </head>
 <body>
@@ -195,8 +231,38 @@
   <div class="card">
     <div class="log-header">
       <h2>Log History</h2>
-      <button class="refresh-btn" onclick="loadLogs()">Refresh</button>
+      <button class="refresh-btn" onclick="applyFilters()">Refresh</button>
     </div>
+
+    <!-- FILTERS -->
+    <div class="filters">
+      <div class="filter-group">
+        <div class="filter-label">Status</div>
+        <select id="filterStatus" onchange="applyFilters()">
+          <option value="">All statuses</option>
+          <option value="DELIVERED">Delivered</option>
+          <option value="FAILED">Failed</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Category</div>
+        <select id="filterCategory" onchange="applyFilters()">
+          <option value="">All categories</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Channel</div>
+        <select id="filterChannel" onchange="applyFilters()">
+          <option value="">All channels</option>
+          <option value="SMS">SMS</option>
+          <option value="EMAIL">Email</option>
+          <option value="PUSH_NOTIFICATION">Push Notification</option>
+        </select>
+      </div>
+      <button class="btn-clear" onclick="clearFilters()">Clear</button>
+    </div>
+
+    <div id="resultsCount" class="results-count"></div>
     <div id="logsContainer">
       <div class="empty">Loading logs...</div>
     </div>
@@ -210,26 +276,57 @@
     try {
       const res = await fetch(`${API}/api/messages/categories`);
       const categories = await res.json();
+
       const select = document.getElementById('category');
+      const filterSelect = document.getElementById('filterCategory');
+
       categories.forEach(cat => {
-        const option = document.createElement('option');
-        option.value = cat.value;
-        option.textContent = cat.displayName;
-        select.appendChild(option);
+        const opt1 = new Option(cat.displayName, cat.value);
+        const opt2 = new Option(cat.displayName, cat.value);
+        select.appendChild(opt1);
+        filterSelect.appendChild(opt2);
       });
     } catch (e) {
       console.error('Failed to load categories', e);
     }
   }
 
-  async function loadLogs() {
+  async function applyFilters() {
+    const status = document.getElementById('filterStatus').value;
+    const category = document.getElementById('filterCategory').value;
+    const channel = document.getElementById('filterChannel').value;
+
+    const params = new URLSearchParams();
+    if (status) params.append('status', status);
+    if (category) params.append('category', category);
+    if (channel) params.append('channelType', channel);
+
+    const url = params.toString()
+      ? `${API}/api/logs/filter?${params}`
+      : `${API}/api/logs`;
+
+    await loadLogs(url);
+  }
+
+  function clearFilters() {
+    document.getElementById('filterStatus').value = '';
+    document.getElementById('filterCategory').value = '';
+    document.getElementById('filterChannel').value = '';
+    applyFilters();
+  }
+
+  async function loadLogs(url = `${API}/api/logs`) {
     const container = document.getElementById('logsContainer');
+    const countEl = document.getElementById('resultsCount');
+
     try {
-      const res = await fetch(`${API}/api/logs`);
+      const res = await fetch(url);
       const logs = await res.json();
 
+      countEl.textContent = `${logs.length} result${logs.length !== 1 ? 's' : ''}`;
+
       if (logs.length === 0) {
-        container.innerHTML = '<div class="empty">No notifications sent yet.</div>';
+        container.innerHTML = '<div class="empty">No notifications found.</div>';
         return;
       }
 
@@ -253,7 +350,7 @@
                   <div style="color:#888;font-size:12px">${log.userEmail}</div>
                 </td>
                 <td>${log.category}</td>
-                <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
                   ${log.messageBody}
                 </td>
                 <td>${formatChannel(log.channelType)}</td>
@@ -270,6 +367,7 @@
       `;
     } catch (e) {
       container.innerHTML = '<div class="empty">Failed to load logs.</div>';
+      countEl.textContent = '';
     }
   }
 
@@ -283,14 +381,8 @@
     errorDiv.style.display = 'none';
     successDiv.style.display = 'none';
 
-    if (!category) {
-      showError('Please select a category.');
-      return;
-    }
-    if (!body) {
-      showError('Message body cannot be empty.');
-      return;
-    }
+    if (!category) { showError('Please select a category.'); return; }
+    if (!body) { showError('Message body cannot be empty.'); return; }
 
     btn.disabled = true;
     btn.textContent = 'Sending...';
@@ -312,7 +404,7 @@
       successDiv.style.display = 'block';
       document.getElementById('body').value = '';
       document.getElementById('category').value = '';
-      await loadLogs();
+      await applyFilters();
     } catch (e) {
       showError('Network error. Please try again.');
     } finally {
@@ -341,9 +433,8 @@
     return d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
   }
 
-  // Init
   loadCategories();
-  loadLogs();
+  applyFilters();
 </script>
 </body>
 </html>

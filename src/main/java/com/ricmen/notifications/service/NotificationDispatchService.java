@@ -54,7 +54,7 @@ public class NotificationDispatchService {
       for (ChannelType channelType : user.getChannels()) {
         try {
           NotificationChannel channel = channels.get(channelType);
-          channel.send(user, message);
+          channel.simulateSend(user, message);
           saveLog(user, message, channelType, NotificationStatus.DELIVERED, null);
         } catch (Exception e) {
           log.error("Failed to send {} notification to {}: {}",
