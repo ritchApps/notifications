@@ -15,10 +15,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class NotificationLogService {
   private final NotificationLogRepository notificationLogRepository;
-  private final NotificationLogMapper mapper;
+  private final NotificationLogMapper notificationLogMapper;
 
   public List<NotificationLogResponseDto> getAllLogs() {
     List<NotificationLog> logs = notificationLogRepository.findAllByOrderBySentAtDesc();
-    return logs.stream().map(mapper::toDto).toList();
+    return logs.stream().map(notificationLogMapper::toDto).toList();
   }
 }
