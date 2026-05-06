@@ -46,7 +46,7 @@ public class NotificationDispatchService {
     List<User> subscribedUsers = userRepository.findAllSubscribedToCategory(message.getCategory());
 
     if (subscribedUsers.isEmpty()) {
-      log.warn("no suscribers found for category: {}", message.getCategory());
+      log.warn("No subscribers found for category: {}", message.getCategory());
       return;
     }
 
@@ -54,7 +54,7 @@ public class NotificationDispatchService {
       for (ChannelType channelType : user.getChannels()) {
         try {
           NotificationChannel channel = channels.get(channelType);
-          channel.simulateSend(user, message);
+          channel.send(user, message);
           saveLog(user, message, channelType, NotificationStatus.DELIVERED, null);
         } catch (Exception e) {
           log.error("Failed to send {} notification to {}: {}",

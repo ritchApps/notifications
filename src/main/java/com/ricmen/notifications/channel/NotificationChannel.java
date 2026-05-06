@@ -9,8 +9,8 @@ public interface NotificationChannel {
 
   ChannelType supportedChannel();
 
-  default void simulateSend(User user, Message message) {
-    if (Math.random() < 0.2) {
+  default void simulateSend(User user, Message message, boolean simulationEnabled) {
+    if (simulationEnabled && Math.random() < 0.2) {
       throw new RuntimeException(
           supportedChannel() + " service temporarily unavailable");
     }

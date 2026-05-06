@@ -34,7 +34,7 @@ public class MessageService {
     message.setBody(body);
 
     Message saved = messageRepository.save(message);
-    log.info("Mesage saved with id: {} for category: {}", saved.getId(), saved.getCategory());
+    log.info("Message saved with id: {} for category: {}", saved.getId(), saved.getCategory());
 
     eventPublisher.publishEvent(new MessageReceivedEvent(saved));
     return mapper.toDto(saved);

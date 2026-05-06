@@ -80,7 +80,7 @@ http://localhost:8080
 ./mvnw test
 ```
 
-> 24 tests across services and notification channels.
+> 83 tests across services and notification channels. The Spring Boot context test (`NotificationsApplicationTests`) requires a running database and is excluded in pure unit test runs.
 
 ## API Endpoints
 
@@ -90,6 +90,8 @@ http://localhost:8080
 | GET | `/api/messages/categories` | List available categories |
 | GET | `/api/logs` | Get all logs, newest first |
 | GET | `/api/logs/filter` | Filter logs by status, category, or channel |
+| GET | `/api/simulation` | Get fault simulation status |
+| PUT | `/api/simulation` | Enable or disable fault simulation |
 
 ## Environment Variables
 
