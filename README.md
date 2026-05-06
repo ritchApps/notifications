@@ -110,3 +110,42 @@ Bash
 ./mvnw spring-boot:run
 
 3. Access the UI: http://localhost:8080
+
+
+## 🔌 API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/messages` | Send a message |
+| GET | `/api/messages/categories` | List available categories |
+| GET | `/api/logs` | Get all logs, newest first |
+| GET | `/api/logs/filter` | Filter by status, category, channel |
+| GET | `/api/simulation` | Get fault simulation status |
+| PUT | `/api/simulation` | Enable or disable fault simulation |
+
+
+
+## ⚙️ Environment Variables
+
+| Variable | Default |
+|---|---|
+| `SPRING_DATASOURCE_URL` | `jdbc:postgresql://localhost:5432/notifications_db` |
+| `SPRING_DATASOURCE_USERNAME` | `notifications_user` |
+| `SPRING_DATASOURCE_PASSWORD` | `notifications_pass` |
+
+
+
+## 👥 Pre-populated Users
+
+| Name | Categories | Channels |
+|---|---|---|
+| Alice Johnson | Sports, Finance | SMS, Email |
+| Bob Martinez | Sports | Email |
+| Carol Williams | Finance, Movies | SMS, Push |
+| David Chen | Sports, Movies | Email, Push |
+| Eva Rodriguez | Finance, Movies | SMS |
+| Frank Kim | Sports, Finance, Movies | SMS, Email, Push |
+| Grace Lee | Sports | SMS, Email |
+| Henry Park | Finance | Email, Push |
+| Iris Wang | Movies | SMS, Push |
+| Jack Brown | Sports, Finance, Movies | SMS, Email, Push |
