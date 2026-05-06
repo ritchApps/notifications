@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.ricmen.notifications.domain.entity.NotificationLog;
+import com.ricmen.notifications.domain.enums.Category;
 import com.ricmen.notifications.domain.enums.ChannelType;
 import com.ricmen.notifications.domain.enums.NotificationStatus;
 import com.ricmen.notifications.dto.response.NotificationLogResponseDto;
@@ -90,6 +91,83 @@ class NotificationLogServiceTest {
         .containsExactly(NotificationStatus.DELIVERED, NotificationStatus.FAILED);
 
   };
+
+  @Test
+  void getFilteredLogs_shouldReturnOnlyMatchingStatus() {
+    NotificationLog delivered = buildLog(1L, NotificationStatus.DELIVERED);
+    NotificationLogResponseDto dto = buildDto(1L, NotificationStatus.DELIVERED);
+
+    when(notificationLogRepository.findAllWithFilters(NotificationStatus.DELIVERED, null, null))
+        .thenReturn(List.of(delivered));
+    when(notificationLogMapper.toDto(delivered)).thenReturn(dto);
+
+    List<NotificationLogResponseDto> result =
+        notificationLogService.getFilteredLogs(NotificationStatus.DELIVERED, null, null);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getStatus()).isEqualTo(NotificationStatus.DELIVERED);
+  }
+
+  @Test
+  void getFilteredLogs_shouldReturnOnlyMatchingChannel() {
+    NotificationLog log = buildLog(1L, NotificationStatus.DELIVERED);
+    NotificationLogResponseDto dto = buildDto(1L, NotificationStatus.DELIVERED);
+    dto = NotificationLogResponseDto.builder()
+        .id(1L).status(NotificationStatus.DELIVERED)
+        .channelType(ChannelType.EMAIL)
+        .userEmail("user@example.com").messageBody("msg").category("SPORTS")
+        .sentAt(LocalDateTime.now()).build();
+
+    when(notificationLogRepository.findAllWithFilters(null, ChannelType.EMAIL, null))
+        .thenReturn(List.of(log));
+    when(notificationLogMapper.toDto(log)).thenReturn(dto);
+
+    List<NotificationLogResponseDto> result =
+        notificationLogService.getFilteredLogs(null, ChannelType.EMAIL, null);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getChannelType()).isEqualTo(ChannelType.EMAIL);
+  }
+
+  @Test
+  void getFilteredLogs_shouldReturnOnlyMatchingCategory() {
+    NotificationLog log = buildLog(1L, NotificationStatus.DELIVERED);
+    NotificationLogResponseDto dto = NotificationLogResponseDto.builder()
+        .id(1L).status(NotificationStatus.DELIVERED)
+        .channelType(ChannelType.SMS)
+        .userEmail("user@example.com").messageBody("msg").category("SPORTS")
+        .sentAt(LocalDateTime.now()).build();
+
+    when(notificationLogRepository.findAllWithFilters(null, null, Category.SPORTS))
+        .thenReturn(List.of(log));
+    when(notificationLogMapper.toDto(log)).thenReturn(dto);
+
+    List<NotificationLogResponseDto> result =
+        notificationLogService.getFilteredLogs(null, null, Category.SPORTS);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getCategory()).isEqualTo("SPORTS");
+  }
+
+  @Test
+  void getFilteredLogs_shouldReturnEmptyWhenNoMatch() {
+    when(notificationLogRepository.findAllWithFilters(NotificationStatus.FAILED, ChannelType.SMS, Category.MOVIES))
+        .thenReturn(List.of());
+
+    List<NotificationLogResponseDto> result =
+        notificationLogService.getFilteredLogs(NotificationStatus.FAILED, ChannelType.SMS, Category.MOVIES);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  void getFilteredLogs_shouldPassAllNullsWhenNoFiltersApplied() {
+    when(notificationLogRepository.findAllWithFilters(null, null, null)).thenReturn(List.of());
+
+    notificationLogService.getFilteredLogs(null, null, null);
+
+    verify(notificationLogRepository).findAllWithFilters(null, null, null);
+  }
 
   private NotificationLogResponseDto buildDto(long id, NotificationStatus status) {
     return NotificationLogResponseDto.builder()
