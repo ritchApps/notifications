@@ -20,8 +20,11 @@ import com.ricmen.notifications.domain.enums.NotificationStatus;
 import com.ricmen.notifications.repository.NotificationLogRepository;
 import com.ricmen.notifications.repository.UserRepository;
 
+import java.util.Collection;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyIterable;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -71,8 +74,7 @@ class NotificationDispatchServiceTest {
     verify(smsChannel).send(user, sportsMessage);
     verify(emailChannel).send(user, sportsMessage);
     verify(pushChannel).send(user, sportsMessage);
-    verify(notificationLogRepository, times(3)).save(any(NotificationLog.class));
-
+    verify(notificationLogRepository).saveAll(argThat(list -> ((Collection<?>) list).size() == 3));
   }
 
   @Test
@@ -82,10 +84,11 @@ class NotificationDispatchServiceTest {
 
     dispatchService.dispatch(sportsMessage);
 
-    ArgumentCaptor<NotificationLog> captor = ArgumentCaptor.forClass(NotificationLog.class);
-    verify(notificationLogRepository).save(captor.capture());
-    assertThat(captor.getValue().getStatus()).isEqualTo(NotificationStatus.DELIVERED);
-    assertThat(captor.getValue().getErrorMessage()).isNull();
+    ArgumentCaptor<List<NotificationLog>> captor = ArgumentCaptor.forClass(List.class);
+    verify(notificationLogRepository).saveAll(captor.capture());
+    NotificationLog saved = captor.getValue().get(0);
+    assertThat(saved.getStatus()).isEqualTo(NotificationStatus.DELIVERED);
+    assertThat(saved.getErrorMessage()).isNull();
   }
 
   @Test
@@ -96,10 +99,11 @@ class NotificationDispatchServiceTest {
 
     dispatchService.dispatch(sportsMessage);
 
-    ArgumentCaptor<NotificationLog> captor = ArgumentCaptor.forClass(NotificationLog.class);
-    verify(notificationLogRepository).save(captor.capture());
-    assertThat(captor.getValue().getStatus()).isEqualTo(NotificationStatus.FAILED);
-    assertThat(captor.getValue().getErrorMessage()).isEqualTo("SMS service unavailable");
+    ArgumentCaptor<List<NotificationLog>> captor = ArgumentCaptor.forClass(List.class);
+    verify(notificationLogRepository).saveAll(captor.capture());
+    NotificationLog saved = captor.getValue().get(0);
+    assertThat(saved.getStatus()).isEqualTo(NotificationStatus.FAILED);
+    assertThat(saved.getErrorMessage()).isEqualTo("SMS service unavailable");
   }
 
   @Test
@@ -112,17 +116,17 @@ class NotificationDispatchServiceTest {
     dispatchService.dispatch(sportsMessage);
 
     verify(emailChannel).send(user, sportsMessage);
-    verify(notificationLogRepository, times(3)).save(any(NotificationLog.class));
-
+    verify(pushChannel).send(user, sportsMessage);
+    verify(notificationLogRepository).saveAll(argThat(list -> ((Collection<?>) list).size() == 3));
   }
 
   @Test
-  void dispatch_shouldDoNothingWhenNoSusbcribersFound() {
+  void dispatch_shouldDoNothingWhenNoSubscribersFound() {
     when(userRepository.findAllSubscribedToCategory(Category.SPORTS)).thenReturn(List.of());
 
     dispatchService.dispatch(sportsMessage);
 
-    verify(notificationLogRepository, never()).save(any());
+    verify(notificationLogRepository, never()).saveAll(anyIterable());
     verify(smsChannel, never()).send(any(), any());
     verify(emailChannel, never()).send(any(), any());
   }
@@ -140,8 +144,7 @@ class NotificationDispatchServiceTest {
     verify(smsChannel).send(user1, sportsMessage);
     verify(emailChannel).send(user2, sportsMessage);
     verify(pushChannel).send(user3, sportsMessage);
-    verify(notificationLogRepository, times(3)).save(any(NotificationLog.class));
-
+    verify(notificationLogRepository).saveAll(argThat(list -> ((Collection<?>) list).size() == 3));
   }
 
   private User buildUser(int id, Set<Category> categories, Set<ChannelType> channels) {

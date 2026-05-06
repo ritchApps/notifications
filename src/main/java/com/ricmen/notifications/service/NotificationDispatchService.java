@@ -1,14 +1,15 @@
 package com.ricmen.notifications.service;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.function.Function;
 
 import com.ricmen.notifications.channel.NotificationChannel;
 import com.ricmen.notifications.domain.entity.Message;
@@ -50,30 +51,43 @@ public class NotificationDispatchService {
       return;
     }
 
-    for (User user : subscribedUsers) {
-      for (ChannelType channelType : user.getChannels()) {
-        try {
-          NotificationChannel channel = channels.get(channelType);
-          channel.send(user, message);
-          saveLog(user, message, channelType, NotificationStatus.DELIVERED, null);
-        } catch (Exception e) {
-          log.error("Failed to send {} notification to {}: {}",
-              channelType, user.getName(), e.getMessage());
-          saveLog(user, message, channelType, NotificationStatus.FAILED, e.getMessage());
-        }
+    record Delivery(ChannelType channelType, User user) {}
+
+    List<Delivery> deliveries = subscribedUsers.stream()
+        .flatMap(user -> user.getChannels().stream()
+            .map(channelType -> new Delivery(channelType, user)))
+        .sorted(Comparator.comparing(Delivery::channelType))
+        .toList();
+
+    List<NotificationLog> logs = new ArrayList<>();
+
+    for (Delivery delivery : deliveries) {
+      NotificationStatus status;
+      String errorMessage = null;
+      try {
+        channels.get(delivery.channelType()).send(delivery.user(), message);
+        status = NotificationStatus.DELIVERED;
+      } catch (Exception e) {
+        log.error("Failed to send {} notification to {}: {}",
+            delivery.channelType(), delivery.user().getName(), e.getMessage());
+        status = NotificationStatus.FAILED;
+        errorMessage = e.getMessage();
       }
+      logs.add(buildLog(delivery.user(), message, delivery.channelType(), status, errorMessage));
     }
+
+    notificationLogRepository.saveAll(logs);
   }
 
-  private void saveLog(User user, Message message, ChannelType channelType, NotificationStatus status,
-      String errorMessage) {
-    NotificationLog notificationLog = new NotificationLog();
-    notificationLog.setUser(user);
-    notificationLog.setMessage(message);
-    notificationLog.setChannelType(channelType);
-    notificationLog.setStatus(status);
-    notificationLog.setErrorMessage(errorMessage);
-    notificationLogRepository.save(notificationLog);
+  private NotificationLog buildLog(User user, Message message, ChannelType channelType,
+      NotificationStatus status, String errorMessage) {
+    NotificationLog entry = new NotificationLog();
+    entry.setUser(user);
+    entry.setMessage(message);
+    entry.setChannelType(channelType);
+    entry.setStatus(status);
+    entry.setErrorMessage(errorMessage);
+    return entry;
   }
 
 }
