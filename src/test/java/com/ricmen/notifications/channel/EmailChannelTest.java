@@ -12,7 +12,6 @@ import com.ricmen.notifications.domain.enums.ChannelType;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class EmailChannelTest {
 
